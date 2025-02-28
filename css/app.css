@@ -1,0 +1,17 @@
+.card-header {
+    font-weight: bold;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 900px;
+}
+
+#connectionCard input {
+    width: 100%;
+}
+
+#myChart {
+    max-width: 100%;
+    height: auto;
+}
