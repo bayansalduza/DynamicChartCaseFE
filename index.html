@@ -1,126 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <meta charset="utf-8"/>
-    <title>Dinamik Chart Uygulaması - DynamicChartCase</title>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
-
-    <link rel="stylesheet" href="css/app.css" />
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="SQL verilerinizi bağlayın, keşfedin ve birkaç adımda anlaşılır grafiklere dönüştürün.">
+    <meta name="theme-color" content="#142c2b">
+    <meta name="api-base-url" content="https://localhost:44344">
+    <title>Grafik Atölyesi · DynamicChart</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23142c2b'/%3E%3Cpath d='M11 27V20M20 27V11M29 27V16' stroke='%23b7edb3' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="css/app.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+    <script defer src="js/app.js"></script>
 </head>
 <body>
-<div class="container my-4">
-    <h1 class="text-center mb-4">Dinamik Chart Uygulaması - DynamicChartCase</h1>
-
-    <div class="card mb-3" id="connectionCard">
-        <div class="card-header">Veritabanı Bağlantısı</div>
-        <div class="card-body">
-            <div class="row g-2 mb-2">
-                <div class="col-sm-2">
-                    <label class="form-label">Sunucu Adı</label>
+<svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M9 15v-4m5 4V7m5 8v-6"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 4 16 4 16 0V5M4 12v7c0 4 16 4 16 0v-7"/></symbol>
+    <symbol id="i-table" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 10v10"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 10a8 8 0 1 0-2 8M20 4v6h-6"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v2"/></symbol>
+    <symbol id="i-line" viewBox="0 0 24 24"><path d="M4 5v14h16M7 14l4-5 4 3 5-7"/></symbol>
+    <symbol id="i-radar" viewBox="0 0 24 24"><path d="m12 3 9 6-3 11H6L3 9Zm0 0v9m9-3-9 3 6 8m-6-8-6 8m6-8L3 9"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+</svg>
+<a class="skip-link" href="#main">İçeriğe geç</a>
+<div class="app-shell">
+    <aside class="sidebar" aria-label="Ana menü">
+        <a class="brand" href="./" aria-label="DynamicChart ana sayfa"><span class="brand-mark"><svg class="icon"><use href="#i-chart"/></svg></span><span>Dynamic<span class="brand-light">Chart</span><small>VERİ GÖRSELLEŞTİRME</small></span></a>
+        <div class="workspace-label">ÇALIŞMA ALANI</div>
+        <nav class="navigation">
+            <a class="nav-link active" href="#main" aria-current="page"><svg class="icon"><use href="#i-chart"/></svg>Grafik atölyesi<span class="nav-dot"></span></a>
+            <a class="nav-link" href="#connectionCard"><svg class="icon"><use href="#i-database"/></svg>Veritabanı bağlantısı</a>
+            <button class="nav-link" id="previewNavBtn" type="button"><svg class="icon"><use href="#i-table"/></svg>Veri önizleme</button>
+        </nav>
+        <div class="sidebar-note"><span class="note-icon"><svg class="icon"><use href="#i-spark"/></svg></span><h2>Küçük bir veri.<br>Büyük bir bakış açısı.</h2><p>Bir veri kaynağı seçin, hikâyesini birlikte ortaya çıkaralım.</p><button id="sidebarDemoBtn" class="sidebar-demo" type="button">Örnek veriyi keşfet <span aria-hidden="true">↗</span></button></div>
+        <div class="sidebar-footer"><span class="status-dot"></span>SQL Server ile çalışır<span class="version">v2.0</span></div>
+    </aside>
+    <div class="main-shell">
+        <header class="topbar"><div class="breadcrumb">Çalışma alanı <span aria-hidden="true">/</span> <strong>Grafik atölyesi</strong></div><span id="connectionBadge" class="badge"><span class="status-dot"></span>Bağlantı bekleniyor</span></header>
+        <main id="main" tabindex="-1">
+            <div class="page-heading"><div><p class="eyebrow">VERİNİZE YENİ BİR PENCERE</p><h1>Veriden içgörüye<span>.</span></h1><p class="page-description">Bağlanın, verinizi seçin ve hikâyesini görselleştirin.</p></div><button id="demoBtn" class="button button-white" type="button"><svg class="icon"><use href="#i-spark"/></svg>Örnek veriyi dene<svg class="icon small"><use href="#i-arrow"/></svg></button></div>
+            <ol class="workflow" aria-label="Grafik oluşturma adımları">
+                <li id="stepConnection" class="current" aria-current="step"><span class="step-number">01</span><span>Veritabanına bağlan</span><svg class="icon"><use href="#i-check"/></svg></li>
+                <li id="stepSource"><span class="step-number">02</span><span>Veri kaynağını seç</span><svg class="icon"><use href="#i-check"/></svg></li>
+                <li id="stepChart"><span class="step-number">03</span><span>Grafiğini oluştur</span><svg class="icon"><use href="#i-check"/></svg></li>
+            </ol>
+            <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+            <div class="studio-grid">
+                <div class="config-stack">
+                    <section id="connectionCard" class="panel config-panel" aria-labelledby="connectionTitle">
+                        <div class="panel-heading"><span class="section-icon"><svg class="icon"><use href="#i-database"/></svg></span><div><h2 id="connectionTitle">Veritabanı bağlantısı</h2><p>Verinizin kaynağıyla başlayalım.</p></div><span class="section-index">01</span></div>
+                        <form id="connectionForm">
+                            <div class="field"><label for="serverName">Sunucu adı</label><input id="serverName" name="server" type="text" placeholder="localhost\SQLEXPRESS,1433" required autocomplete="off" spellcheck="false"></div>
+                            <div class="field"><label for="databaseName">Veritabanı adı</label><input id="databaseName" name="database" type="text" placeholder="Örn. ChartSampleDB" required autocomplete="off" spellcheck="false"></div>
+                            <div class="field-row"><div class="field"><label for="userName">Kullanıcı adı</label><input id="userName" name="username" type="text" placeholder="SQL kullanıcısı" required autocomplete="off" spellcheck="false"></div><div class="field"><label for="password">Şifre</label><div class="password-field"><input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="off"><button id="togglePasswordBtn" type="button" class="icon-button" aria-label="Şifreyi göster" aria-pressed="false"><svg class="icon"><use href="#i-eye"/></svg></button></div></div></div>
+                            <details class="api-settings"><summary>API bağlantı ayarları</summary><div class="field"><label for="apiBaseUrl">API adresi</label><input id="apiBaseUrl" name="api" type="url" required spellcheck="false" aria-describedby="apiHint"><p id="apiHint" class="field-hint">Veritabanı bilgileri bu API’ye gönderilir. Güvendiğiniz bir adres kullanın.</p></div></details>
+                            <button id="testConnectionBtn" class="button button-primary full-width" type="submit"><svg class="icon"><use href="#i-lock"/></svg><span>Bağlantıyı test et</span><svg class="icon small"><use href="#i-arrow"/></svg></button>
+                            <p id="connectionResult" class="connection-result" role="status">Bağlantı bilgileri tarayıcıya kaydedilmez.</p>
+                        </form>
+                    </section>
+                    <section id="dataSourceCard" class="panel config-panel" aria-labelledby="sourceTitle">
+                        <div class="panel-heading"><span class="section-icon"><svg class="icon"><use href="#i-table"/></svg></span><div><h2 id="sourceTitle">Veri kaynağı</h2><p>Tablo, görünüm veya prosedür seçin.</p></div><span class="section-index">02</span></div>
+                        <fieldset id="sourceFields" disabled><legend class="sr-only">Veri kaynağı seçimi</legend><div class="field"><div class="label-row"><label for="dataSourceSelect">Kullanılacak kaynak</label><button id="loadDataSourcesBtn" class="text-button" type="button"><svg class="icon small"><use href="#i-refresh"/></svg>Yenile</button></div><select id="dataSourceSelect"><option value="">Önce veritabanına bağlanın</option></select></div><button id="getDataBtn" class="button button-secondary full-width" type="button" disabled>Veriyi getir<svg class="icon small"><use href="#i-arrow"/></svg></button></fieldset>
+                        <p id="sourceHint" class="field-hint">Bağlantı kurulduğunda kaynaklar burada listelenir.</p>
+                    </section>
+                    <section id="mappingCard" class="panel config-panel" aria-labelledby="mappingTitle">
+                        <div class="panel-heading"><span class="section-icon"><svg class="icon"><use href="#i-chart"/></svg></span><div><h2 id="mappingTitle">Görselleştirme</h2><p>Verinize en uygun görünümü bulun.</p></div><span class="section-index">03</span></div>
+                        <fieldset id="mappingFields" disabled><legend class="sr-only">Grafik ayarları</legend><div class="field"><span id="chartTypeLabel" class="field-label">Grafik türü</span><div class="chart-types" role="group" aria-labelledby="chartTypeLabel"><button class="chart-type selected" type="button" data-chart-type="bar" aria-pressed="true"><svg class="icon"><use href="#i-chart"/></svg>Sütun</button><button class="chart-type" type="button" data-chart-type="line" aria-pressed="false"><svg class="icon"><use href="#i-line"/></svg>Çizgi</button><button class="chart-type" type="button" data-chart-type="radar" aria-pressed="false"><svg class="icon"><use href="#i-radar"/></svg>Radar</button></div></div><div class="field"><label for="labelColumnSelect">Etiket kolonu <span class="label-detail">/ X ekseni</span></label><select id="labelColumnSelect"></select></div><div class="field"><label for="valueColumnSelect">Değer kolonu <span class="label-detail">/ Sayısal</span></label><select id="valueColumnSelect"></select></div><button id="drawChartBtn" class="button button-primary full-width" type="button"><svg class="icon"><use href="#i-spark"/></svg>Grafiği oluştur</button></fieldset>
+                    </section>
                 </div>
-                <div class="col-sm-4">
-                    <input type="text" id="serverName" class="form-control" 
-                           placeholder="92.205.xxx.xxx\SQLEXPRESS,1433"/>
-                </div>
-            </div>
-            <div class="row g-2 mb-2">
-                <div class="col-sm-2">
-                    <label class="form-label">Veritabanı Adı</label>
-                </div>
-                <div class="col-sm-4">
-                    <input type="text" id="databaseName" class="form-control" 
-                           placeholder="ChartSampleDB"/>
-                </div>
-            </div>
-            <div class="row g-2 mb-2">
-                <div class="col-sm-2">
-                    <label class="form-label">Kullanıcı</label>
-                </div>
-                <div class="col-sm-4">
-                    <input type="text" id="userName" class="form-control" 
-                           placeholder="ChartSampleUser"/>
-                </div>
-            </div>
-            <div class="row g-2 mb-3">
-                <div class="col-sm-2">
-                    <label class="form-label">Şifre</label>
-                </div>
-                <div class="col-sm-4">
-                    <input type="password" id="password" class="form-control" 
-                           placeholder="••••••"/>
-                </div>
-            </div>
-
-            <button id="testConnectionBtn" class="btn btn-primary">Bağlantıyı Test Et</button>
-            <span id="connectionResult" class="ms-3"></span>
-        </div>
-    </div>
-
-    <div class="card mb-3" id="dataSourceCard" style="display:none;">
-        <div class="card-header">Veri Kaynağı Seçimi (Tablo / View / Stored Procedure)</div>
-        <div class="card-body">
-            <button id="loadDataSourcesBtn" class="btn btn-secondary">Veri Kaynaklarını Yükle</button>
-            <select id="dataSourceSelect" 
-                    class="form-select w-50 d-inline-block ms-2"></select>
-        </div>
-    </div>
-
-    <div class="card mb-3" id="chartConfigCard" style="display:none;">
-        <div class="card-header">Chart Tipi ve Veri Çekme</div>
-        <div class="card-body">
-            <div class="mb-2">
-                <label>Chart Tipi: </label>
-                <select id="chartTypeSelect" class="form-select w-25 d-inline-block ms-2">
-                    <option value="bar">Bar</option>
-                    <option value="line">Line</option>
-                    <option value="radar">Radar</option>
-                </select>
-            </div>
-            <div class="mb-3 text-muted" style="font-size: 0.9rem;">
-                (Tablo, View veya Stored Procedure seçtikten sonra 
-                istediğiniz chart tipini belirleyebilirsiniz.)
-            </div>
-            <button id="getDataBtn" class="btn btn-success me-2">Veriyi Getir</button>
-        </div>
-    </div>
-
-    <div class="card mb-3" id="mappingCard" style="display:none;">
-        <div class="card-header">Kolon Eşleştirme ve Chart</div>
-        <div class="card-body">
-            <p class="mb-2">Kolonlar: <span id="columnList"></span></p>
-            <div class="row g-2 align-items-center mb-2">
-                <div class="col-auto">
-                    <label for="labelColumnSelect" class="col-form-label">Label Kolonu:</label>
-                </div>
-                <div class="col-auto">
-                    <select id="labelColumnSelect" class="form-select"></select>
+                <div class="result-stack">
+                    <section class="panel visualization-panel" aria-labelledby="visualizationTitle">
+                        <div class="visualization-header"><div><div class="eyebrow">CANLI ÖNİZLEME <span id="demoBadge" class="demo-badge" hidden>ÖRNEK VERİ</span></div><h2 id="visualizationTitle">Verinizin büyük resmi</h2><p id="chartSubtitle">İlk grafiğiniz birkaç adım uzağınızda.</p></div><button id="downloadChartBtn" class="button button-white button-compact" type="button" disabled><svg class="icon"><use href="#i-download"/></svg>PNG indir</button></div>
+                        <div class="preview-toolbar"><div class="tabs" role="tablist" aria-label="Veri görünümü"><button id="chartTab" class="tab active" role="tab" aria-selected="true" aria-controls="chartPanel" type="button"><svg class="icon small"><use href="#i-chart"/></svg>Grafik</button><button id="tableTab" class="tab" role="tab" aria-selected="false" aria-controls="tablePanel" tabindex="-1" type="button"><svg class="icon small"><use href="#i-table"/></svg>Veri tablosu <span id="tableCount" class="count">0</span></button></div><button id="clearChartBtn" class="text-button muted" type="button" disabled>Grafiği temizle</button></div>
+                        <div id="chartPanel" class="chart-panel" role="tabpanel" aria-labelledby="chartTab">
+                            <div id="chartEmpty" class="empty-state"><div class="empty-art" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><i></i></div><span class="empty-kicker">HER VERİNİN BİR HİKÂYESİ VAR</span><h3>Sizinki nasıl görünüyor?</h3><p>Veritabanınızı bağlayıp bir kaynak seçin.<br>Kolonları eşleştirin, gerisini grafiğinize bırakın.</p><button id="emptyDemoBtn" class="button button-secondary" type="button"><svg class="icon"><use href="#i-spark"/></svg>Örnek veriyle başla<svg class="icon small"><use href="#i-arrow"/></svg></button><small>Bağlantı gerektirmez · 12 aylık örnek satış verisi</small></div>
+                            <div id="chartCanvasWrap" class="chart-canvas-wrap" hidden><canvas id="myChart" role="img" aria-label="Veri grafiği. Sayısal değerlere Veri tablosu sekmesinden ulaşabilirsiniz."></canvas></div>
+                        </div>
+                        <div id="tablePanel" class="table-panel" role="tabpanel" aria-labelledby="tableTab" hidden><div class="table-tools"><label class="sr-only" for="tableSearch">Veride ara</label><input id="tableSearch" type="search" placeholder="Veride ara…" autocomplete="off"><button id="downloadCsvBtn" class="button button-white button-compact" type="button" disabled><svg class="icon small"><use href="#i-download"/></svg>CSV indir</button></div><div class="table-scroll" tabindex="0" role="region" aria-label="Veri tablosu, yatay kaydırılabilir"><table id="dataTable"><caption class="sr-only">Seçili kaynağın verileri</caption><thead></thead><tbody><tr><td class="table-empty">Önizleme için bir veri kaynağı yükleyin veya örnek veriyi deneyin.</td></tr></tbody></table></div><div class="table-pagination"><span id="tablePageInfo" role="status">0 kayıt</span><div><button id="previousPageBtn" class="button button-white button-compact" type="button" disabled aria-label="Önceki sayfa">←</button><button id="nextPageBtn" class="button button-white button-compact" type="button" disabled aria-label="Sonraki sayfa">→</button></div></div></div>
+                        <div class="chart-footer"><span><span id="chartStatusDot" class="status-dot"></span><span id="chartStatus">Veri bekleniyor</span></span><span id="chartRecordInfo">Veriniz burada hayat bulacak.</span></div>
+                    </section>
+                    <section class="stats-grid" aria-label="Veri özeti"><div class="panel stat-card"><span class="stat-label">TOPLAM KAYIT<svg class="icon"><use href="#i-table"/></svg></span><strong id="recordCount">—</strong><span id="recordHint">Henüz veri yüklenmedi</span></div><div class="panel stat-card"><span class="stat-label">VERİ KOLONU<svg class="icon"><use href="#i-database"/></svg></span><strong id="columnCount">—</strong><span id="columnHint">Kaynağınızın alanları</span></div><div class="panel stat-card"><span class="stat-label">SEÇİLİ DEĞER TOPLAMI<svg class="icon"><use href="#i-chart"/></svg></span><strong id="valueTotal">—</strong><span id="totalHint">Sayısal kolon seçin</span></div></section>
+                    <div class="tip-card"><span class="tip-icon"><svg class="icon"><use href="#i-spark"/></svg></span><div><h3>Doğru grafik, daha net bir hikâye.</h3><p>Sütunlarla karşılaştırın, çizgilerle zaman içindeki değişimi izleyin. Radar ile değerlerin dağılımına farklı bir açıdan bakın.</p></div></div>
+                    <footer class="workspace-footer"><span>DynamicChart <span aria-hidden="true">/</span> Grafik Atölyesi</span><span>Veriden anlam çıkarın.</span></footer>
                 </div>
             </div>
-            <div class="row g-2 align-items-center mb-3">
-                <div class="col-auto">
-                    <label for="valueColumnSelect" class="col-form-label">Value Kolonu:</label>
-                </div>
-                <div class="col-auto">
-                    <select id="valueColumnSelect" class="form-select"></select>
-                </div>
-            </div>
-
-            <button id="drawChartBtn" class="btn btn-primary">Chart'ı Çiz</button>
-            <button id="clearChartBtn" class="btn btn-outline-danger ms-2">Chart'ı Temizle</button>
-
-            <div class="mt-4">
-                <canvas id="myChart" width="600" height="300"></canvas>
-            </div>
-        </div>
+        </main>
     </div>
 </div>
-
-<script src="js/app.js"></script>
 </body>
 </html>
