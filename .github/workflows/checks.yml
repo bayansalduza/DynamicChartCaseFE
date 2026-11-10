@@ -1,18 +1,80 @@
-name: Frontend checks
+name: CI and production deployment
+
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy after checks (disable for CI only)
+        type: boolean
+        default: true
+
 permissions:
   contents: read
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
-          cache: npm
       - run: npm ci
       - run: npm run check
       - run: npm test
+      - run: node --test .github/scripts/request-deployment.test.cjs
+      - name: Check production image and health endpoint
+        run: |
+          docker build --tag dynamicchart-fe:ci .
+          bash tests/container-smoke.sh dynamicchart-fe:ci
+
+  deploy:
+    needs: checks
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'workflow_dispatch' || inputs.deploy)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      deployments: write
+    environment: production-dynamicchart-fe
+    concurrency:
+      group: production-dynamicchart-fe
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Build release image
+        env:
+          IMAGE_NAME: dynamicchart-fe
+        run: |
+          docker build --tag "$IMAGE_NAME:sha-$GITHUB_SHA" .
+          docker save "$IMAGE_NAME:sha-$GITHUB_SHA" | gzip > image.tar.gz
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: image
+        with:
+          name: dynamicchart-fe-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: image.tar.gz
+          retention-days: 1
+          if-no-files-found: error
+      - name: Request deployment and wait for Ubuntu health checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_TARGET: dynamicchart-fe
+          IMAGE_NAME: dynamicchart-fe
+          PRIMARY_BRANCH: main
+          ARTIFACT_ID: ${{ steps.image.outputs.artifact-id }}
+        run: node .github/scripts/request-deployment.cjs
